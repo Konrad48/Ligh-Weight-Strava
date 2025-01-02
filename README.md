@@ -41,4 +41,5 @@ The script includes a function createHourlyTrigger to set up a trigger for runni
 2. Save the script
 
 ## Now you can flex with your perfectly named Strava activities 🏅
+![Ronnie](./light_weight.png)
 
