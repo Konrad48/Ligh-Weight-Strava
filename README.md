@@ -5,7 +5,7 @@ Well, look no further. This Google Apps Script automatically renames your Strava
 
 New activity name is a combination of words from two lists of strings. It avoids renaming the same activity more than once. Lists:
 ```javascript
-const listOne = ["Oooh", "Yeah", "Yep", "Light Weight", "Pow", "Let's gooo", "Gotta get good", "Come on"];
+const listOne = ["Oooh", "Yeah", "Yep", "Light Weight", "Pow", "Let's Gooo", "Gotta Get Good", "Come On"];
 const listTwo = ["Buddy", "Baby"];
 ```
 
