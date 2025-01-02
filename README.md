@@ -1,5 +1,7 @@
-# Ligh-Weight-Strava-Renamer
-This Google Apps Script automatically renames your Strava activities in [Ronnie Coleman](https://www.youtube.com/watch?v=8BNP126zgPU) style.
+# Light-Weight-Baby-Strava-Renamer
+Are you tired of boring Strava activity names like "Lunch Run" or "Evening hike"?
+
+Well, look no further. This Google Apps Script automatically renames your Strava activities in [Ronnie Coleman](https://www.youtube.com/watch?v=8BNP126zgPU) style.
 
 New activity name is a combination of words from two lists of strings. It avoids renaming the same activity more than once. Lists:
 ```javascript
