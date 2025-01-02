@@ -46,7 +46,7 @@ function getRecentActivities(accessToken) {
  ************************************************/
 function renameUnchangedActivities(activities, accessToken) {
   // Two lists of words to pick from
-  const listOne = ["Oooh", "Yeah", "Light Weight", "Pow", "Let's gooo", "Gotta get good"];
+  const listOne = ["Oooh", "Yeah", "Yep", "Light Weight", "Pow", "Let's gooo", "Gotta get good", "Come on"];
   const listTwo = ["Buddy", "Baby"];
 
   // Retrieve or create a property to track renamed IDs
