@@ -1,12 +1,19 @@
+/*************************************************
+ * USER MUST PROVIDE THESE VALUES (see instructions)
+ *************************************************/
+const CLIENT_ID = 'YOUR_CLIENT_ID';
+const CLIENT_SECRET = 'YOUR_CLIENT_SECRET';
+const INITIAL_REFRESH_TOKEN = 'YOUR_REFRESH_TOKEN';
+
 /**************************************
  * MAIN FUNCTION (Scheduled hourly)
  **************************************/
 function renameStravaActivitiesHourly() {
   try {
-    // 1. Use your static Bearer token
-    const accessToken = 'YOUR_STRAVA_BEARER_TOKEN';
+    // 1. Get a valid access token (refresh if needed)
+    const accessToken = getStravaAccessToken();
 
-    // 2. Get all recent activities (last 24h)
+    // 2. Get recent activities (last 24h)
     const recentActivities = getRecentActivities(accessToken);
 
     // 3. Rename if not already renamed
@@ -15,6 +22,89 @@ function renameStravaActivitiesHourly() {
   } catch (error) {
     Logger.log("Error in renameStravaActivitiesHourly: " + error);
   }
+}
+
+/************************************************
+ * HELPER: Retrieve a valid access token
+ *         Refresh if it's expired or missing
+ ************************************************/
+function getStravaAccessToken() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+
+  // Attempt to load existing tokens and expiry from script properties
+  let accessToken = scriptProperties.getProperty("STRAVA_ACCESS_TOKEN");
+  let refreshToken = scriptProperties.getProperty("STRAVA_REFRESH_TOKEN");
+  let expiresAt = scriptProperties.getProperty("STRAVA_EXPIRES_AT");
+
+  // If we have no prior stored tokens, use the user-provided INITIAL_REFRESH_TOKEN
+  if (!accessToken || !refreshToken || !expiresAt) {
+    Logger.log("No stored token data found. Using INITIAL_REFRESH_TOKEN to get tokens...");
+    refreshToken = INITIAL_REFRESH_TOKEN;
+    return refreshAccessToken(refreshToken);
+  }
+
+  // Convert stored expiresAt string to a number
+  expiresAt = Number(expiresAt);
+  const now = Math.floor(Date.now() / 1000);
+
+  // If current time is past the token expiration, refresh
+  if (now >= expiresAt) {
+    Logger.log("Access token expired at " + expiresAt + ". Refreshing...");
+    return refreshAccessToken(refreshToken);
+  }
+
+  // Otherwise, return valid token
+  return accessToken;
+}
+
+/************************************************
+ * HELPER: Refresh the access token
+ ************************************************/
+function refreshAccessToken(oldRefreshToken) {
+  // Strava OAuth token endpoint
+  const tokenUrl = 'https://www.strava.com/api/v3/oauth/token';
+
+  // Build payload for refresh
+  const payload = {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    grant_type: 'refresh_token',
+    refresh_token: oldRefreshToken
+  };
+
+  const options = {
+    method: 'post',
+    payload: payload,
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(tokenUrl, options);
+  if (response.getResponseCode() !== 200) {
+    throw new Error("Failed to refresh Strava token: " + response.getContentText());
+  }
+
+  const data = JSON.parse(response.getContentText());
+
+  /*
+    Example response structure:
+    {
+      "token_type": "Bearer",
+      "access_token": "example_access_token",
+      "expires_at": 1735915347,
+      "expires_in": 21532,
+      "refresh_token": "example_refresh_token"
+    }
+  */
+
+  // Save new tokens in script properties
+  const scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperty("STRAVA_ACCESS_TOKEN", data.access_token);
+  scriptProperties.setProperty("STRAVA_REFRESH_TOKEN", data.refresh_token);
+  scriptProperties.setProperty("STRAVA_EXPIRES_AT", String(data.expires_at));
+
+  Logger.log("Refreshed Access Token. Expires at: " + data.expires_at);
+
+  return data.access_token;
 }
 
 /************************************************
@@ -100,7 +190,7 @@ function renameUnchangedActivities(activities, accessToken) {
 /************************************************
  * OPTIONAL: Create a time-based trigger (once)
  ************************************************/
-// Run this function once manually to set up the hourly trigger
+// Run this function once manually to set up an hourly trigger
 function createHourlyTrigger() {
   ScriptApp.newTrigger('renameStravaActivitiesHourly')
     .timeBased()
